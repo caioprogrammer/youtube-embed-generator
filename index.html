@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Embed Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script>
+    tailwind.config = {
+      plugins: [window.daisyui],
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/daisyui@3.8.3"></script>
+</head>
+<body class="bg-base-200 min-h-screen flex items-center justify-center p-6">
+  <div class="card w-full max-w-2xl bg-base-100 shadow-2xl">
+    <div class="card-body">
+      <h2 class="card-title text-2xl">🎥 YouTube Embed Generator</h2>
+      <p class="text-base-content">Transforme links de vídeos ou shorts em embeds customizados com facilidade!</p>
+
+      <div class="form-control">
+        <label class="label">
+          <span class="label-text">URL do YouTube:</span>
+        </label>
+        <input id="youtube-url" type="text" placeholder="https://youtube.com/watch?v=xyz..." class="input input-bordered" />
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" id="autoplay" checked />
+          <span class="label-text">Autoplay</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" id="mute" checked />
+          <span class="label-text">Mudo</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" id="loop" checked />
+          <span class="label-text">Loop</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" id="rel" checked />
+          <span class="label-text">Ocultar relacionados</span>
+        </label>
+        <label class="cursor-pointer flex items-center gap-2">
+          <input type="checkbox" class="checkbox checkbox-primary" id="controls" checked />
+          <span class="label-text">Ocultar controles</span>
+        </label>
+      </div>
+
+      <div class="mt-6">
+        <button onclick="generateEmbed()" class="btn btn-primary w-full">
+          🔧 Gerar Embed
+        </button>
+      </div>
+
+      <div id="embed-result" class="hidden mt-6 space-y-4">
+        <label class="label">
+          <span class="label-text">Iframe gerado:</span>
+        </label>
+        <textarea id="iframe-output" class="textarea textarea-bordered w-full h-32 resize-none"></textarea>
+
+        <div class="flex gap-2">
+          <button onclick="copyToClipboard('iframe')" class="btn btn-success">
+            📋 Copiar Iframe
+          </button>
+          <button onclick="copyToClipboard('link')" class="btn btn-accent">
+            🔗 Copiar Apenas Link
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de feedback -->
+  <div id="toast" class="toast toast-end hidden">
+    <div class="alert alert-success">
+      <span id="toast-message">Copiado com sucesso!</span>
+    </div>
+  </div>
+
+  <script>
+    function extractVideoId(url) {
+      const videoRegex = /(?:v=|\/shorts\/|\/watch\/|\/embed\/)([a-zA-Z0-9_-]{11})/;
+      const match = url.match(videoRegex);
+      return match ? match[1] : null;
+    }
+
+    function generateEmbed() {
+      const url = document.getElementById('youtube-url').value.trim();
+      const id = extractVideoId(url);
+
+      if (!id) return alert('URL inválida');
+
+      const autoplay = document.getElementById('autoplay').checked ? '1' : '0';
+      const mute = document.getElementById('mute').checked ? '1' : '0';
+      const loop = document.getElementById('loop').checked ? '1' : '0';
+      const rel = document.getElementById('rel').checked ? '0' : '1';
+      const controls = document.getElementById('controls').checked ? '0' : '1';
+
+      const baseEmbed = `https://www.youtube.com/embed/${id}?autoplay=${autoplay}&mute=${mute}&loop=${loop}&rel=${rel}&controls=${controls}&playlist=${id}`;
+      const iframe = `<iframe width="560" height="315" src="${baseEmbed}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+
+      document.getElementById('iframe-output').value = iframe;
+      document.getElementById('embed-result').classList.remove('hidden');
+    }
+
+    function copyToClipboard(type) {
+      const iframe = document.getElementById('iframe-output').value;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(iframe, 'text/html');
+      const src = doc.querySelector('iframe')?.getAttribute('src') ?? '';
+
+      const textToCopy = type === 'iframe' ? iframe : src;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('hidden');
+        document.getElementById('toast-message').textContent = 'Copiado com sucesso!';
+        setTimeout(() => toast.classList.add('hidden'), 2000);
+      });
+    }
+  </script>
+</body>
+</html>
